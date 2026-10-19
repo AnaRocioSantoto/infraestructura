@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal interactivo: Protocolos de Enrutamiento</title>
+    <!-- Tailwind CSS CDN para estilos modernos y responsivos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 12px 24px -10px rgba(14, 165, 233, 0.2);
+        }
+
+        .tab-btn.active {
+            color: #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .subtab-btn.active {
+            background-color: #0284c7;
+            color: #ffffff;
+        }
+
+        /* Modal APA Animation */
+        .modal-bg {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .apa-indent {
+            padding-left: 2rem;
+            text-indent: -2rem;
+        }
+		.header-logo { height: 90px; width: auto; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- HEADER / HERO -->
+    <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-90px flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+				<div >
+					<img class="header-logo" src="logosantoto.png" alt="Logo Universidad Santo Tomás">
+				</div>
+				<div>
+					<h1 class="text-sm md:text-base font-bold bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+						Modelos OSI - TCP/IP
+					</h1>
+				<p class="text-xs text-slate-400 hidden sm:block">Presentada por: Ana Rocío León</p>
+				<p class="text-xs text-slate-400 hidden sm:block">Curso de Infraestructura de Comunicaciones Empresariales</p>
+				<p class="text-xs text-slate-400 hidden sm:block">Presentado al Dr. Leonardo Fabio Yepes Arbeláez</p>
+				
+				</div>
+			</div>
+
+            <!-- BOTÓN MODAL BIBLIOGRAFÍA -->
+            <button onclick="openModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg transition-all shadow-sm">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span>Bibliografía</span>
+            </button>
+        </div>
+
+        <!-- NAVEGACIÓN PRINCIPAL -->
+        <nav class="flex overflow-x-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60 no-scrollbar">
+            <button onclick="switchMainTab('fundamentos', this)" class="tab-btn active px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="compass" class="w-4 h-4"></i> Enrutamiento Estático/Dinámico
+            </button>
+			<button onclick="switchMainTab('distancia-admin', this)" class="tab-btn px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="award" class="w-4 h-4"></i> AD
+            </button>
+			<button onclick="switchMainTab('familias', this)" class="tab-btn px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="git-fork" class="w-4 h-4"></i> Protocolos Dinámicos
+            </button>
+            <button onclick="switchMainTab('protocolos-deep', this)" class="tab-btn px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="cpu" class="w-4 h-4"></i> RIP, OSPF y EIGRP
+            </button>
+            <button onclick="switchMainTab('comparativa', this)" class="tab-btn px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="sliders" class="w-4 h-4"></i> Ventajas / Desventajas 
+            <button onclick="switchMainTab('matriz', this)" class="tab-btn px-5 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i data-lucide="check-square" class="w-4 h-4"></i> Seleccionar el Protocolo
+            </button>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+        <!-- TAB A: ESTÁTICO VS DINÁMICO -->
+        <section id="fundamentos" class="main-tab-content space-y-6">
+            <div class="bg-gradient-to-r from-sky-900/30 via-slate-900 to-slate-900 p-6 rounded-2xl border border-sky-500/20">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="arrow-right-left" class="text-sky-400"></i>
+                    Fundamentos de Enrutamiento IP
+                </h2>
+                <p class="text-slate-300 text-sm leading-relaxed max-w-4xl">
+                    El enrutamiento es el proceso por el cual un router reenvía paquetes IP hacia redes de destino utilizando la coincidencia más larga de prefijo (<i>longest match</i>) en la tabla de enrutamiento. 
+					La diferencia fundamental entre el enfoque estático y dinámico radica en el método de descubrimiento y mantenimiento de rutas .
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Estático -->
+                <div class="glass-card p-6 rounded-2xl glass-card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-semibold rounded-full border border-amber-500/20">Configuración Manual</span>
+                            <i data-lucide="shield-check" class="text-amber-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Enrutamiento Estático</h3>
+                        <p class="text-slate-300 text-sm mb-4">
+                            Las rutas son creadas explícitamente por el administrador de red. Ideal para redes pequeñas, conexiones de última milla (rutas por defecto) o enlaces de respaldo.
+                        </p>
+                        <ul class="text-xs text-slate-400 space-y-2 mb-6">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Cero sobrecarga de ancho de banda y procesamiento .</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Mayor control y seguridad topológica .</li>
+                            <li class="flex items-center gap-2"><i data-lucide="x" class="w-4 h-4 text-rose-400"></i> Inviable para redes de gran tamaño sin automatización .</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-slate-700/50 bg-slate-800/50 h-44 flex items-center justify-center relative">
+                        <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80" alt="Networking hardware" class="w-full h-full object-cover opacity-60">
+                        <span class="absolute bottom-2 left-2 px-2 py-1 bg-slate-900/80 text-[10px] text-slate-300 rounded backdrop-blur">Topología Fija / Manual</span>
+                    </div>
+                </div>
+
+                <!-- Dinámico -->
+                <div class="glass-card p-6 rounded-2xl glass-card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 bg-sky-500/10 text-sky-400 text-xs font-semibold rounded-full border border-sky-500/20">Automatizado</span>
+                            <i data-lucide="refresh-cw" class="text-sky-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Enrutamiento Dinámico</h3>
+                        <p class="text-slate-300 text-sm mb-4">
+                            Los routers ejecutan protocolos que intercambian información de red periódicamente o ante eventos para aprender vecindades y recalcular rutas óptimas ante fallos.
+                        </p>
+                        <ul class="text-xs text-slate-400 space-y-2 mb-6">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Alta escalabilidad y convergencia automática.</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Descubrimiento automático de vecinos y subredes.</li>
+                            <li class="flex items-center gap-2"><i data-lucide="x" class="w-4 h-4 text-rose-400"></i> Consume procesamiento de CPU, memoria y ancho de banda.</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-slate-700/50 bg-slate-800/50 h-44 flex items-center justify-center relative">
+                        <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80" alt="Server rack" class="w-full h-full object-cover opacity-60">
+                        <span class="absolute bottom-2 left-2 px-2 py-1 bg-slate-900/80 text-[10px] text-slate-300 rounded backdrop-blur">Red Adaptativa / Autorecuperable</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+		
+		<!-- PESTAÑA NUEVA: DISTANCIA ADMINISTRATIVA -->
+        <section id="distancia-admin" class="main-tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-purple-900/30 via-slate-900 to-slate-900 p-6 rounded-2xl border border-purple-500/20">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="award" class="text-purple-400"></i>
+                    ¿Qué es la Distancia Administrativa (AD)?
+                </h2>
+                <p class="text-slate-300 text-sm leading-relaxed max-w-4xl">
+                    La **Distancia Administrativa (AD)** es el valor de confiabilidad asignado a una fuente de información de enrutamiento. Varia entre **0 y 255**, donde un valor **menor indica mayor confiabilidad**. 
+					Cuando un router aprende la misma red de destino desde dos fuentes o protocolos distintos, la ruta con la **AD más baja** es la única que se instala en la tabla de enrutamiento.
+                </p>
+            </div>
+
+            <!-- TABLA DE DISTANCIAS ADMINISTRATIVAS -->
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Tabla Estándar de Distancia Administrativa en Cisco IOS</h3>
+                        <p class="text-xs text-slate-400">Prioridad por defecto de las fuentes de rutas</p>
+                    </div>
+                    <!-- Buscador en tiempo real -->
+                    <div class="relative max-w-xs w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                        <input type="text" id="adSearch" onkeyup="filterADTable()" placeholder="Buscar protocolo o valor AD..." class="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="adTable" class="w-full text-left text-xs text-slate-300 border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900 text-slate-200 border-b border-slate-800">
+                                <th class="p-3">Fuente / Protocolo de Enrutamiento</th>
+                                <th class="p-3">Distancia Administrativa (AD)</th>
+                                <th class="p-3">Nivel de Confiabilidad</th>
+                                <th class="p-3">Uso Típico / Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-emerald-400 flex items-center gap-2"><i data-lucide="link" class="w-4 h-4"></i> Interfaz Conectada Directamente</td>
+                                <td class="p-3 font-mono font-bold text-emerald-400">0</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Máxima</span></td>
+                                <td class="p-3 text-slate-400">Redes configuradas directamente en interfaces del router.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-emerald-400 flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> Ruta Estática con interfaz de salida</td>
+                                <td class="p-3 font-mono font-bold text-emerald-400">1</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Muy Alta</span></td>
+                                <td class="p-3 text-slate-400">Rutas configuradas manualmente apuntando a IP o Interfaz.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-purple-400">EIGRP Summary Route</td>
+                                <td class="p-3 font-mono font-bold text-purple-400">5</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Muy Alta</span></td>
+                                <td class="p-3 text-slate-400">Rutas de resumen automáticas/manuales generadas por EIGRP.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-sky-400">BGP Externo (eBGP)</td>
+                                <td class="p-3 font-mono font-bold text-sky-400">20</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">Alta</span></td>
+                                <td class="p-3 text-slate-400">Rutas BGP aprendidas entre Sistemas Autónomos distintos.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-emerald-300">EIGRP Interno</td>
+                                <td class="p-3 font-mono font-bold text-emerald-300">90</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Alta</span></td>
+                                <td class="p-3 text-slate-400">Rutas dinámicas EIGRP aprendidas dentro del mismo AS.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-sky-400">OSPF</td>
+                                <td class="p-3 font-mono font-bold text-sky-400">110</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">Media-Alta</span></td>
+                                <td class="p-3 text-slate-400">Rutas de estado de enlace OSPF (v2 e IPv6 / OSPFv3).</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-indigo-400">IS-IS</td>
+                                <td class="p-3 font-mono font-bold text-indigo-400">115</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Media</span></td>
+                                <td class="p-3 text-slate-400">Protocolo de estado de enlace usado frecuentemente en ISPs.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-amber-400">RIP (v1, v2 y RIPng)</td>
+                                <td class="p-3 font-mono font-bold text-amber-400">120</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Baja</span></td>
+                                <td class="p-3 text-slate-400">Rutas dinámicas por vector de distancia.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-purple-300">EIGRP Externo</td>
+                                <td class="p-3 font-mono font-bold text-purple-300">170</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">Muy Baja</span></td>
+                                <td class="p-3 text-slate-400">Rutas redistribuidas dentro de EIGRP desde otra fuente.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-sky-300">BGP Interno (iBGP)</td>
+                                <td class="p-3 font-mono font-bold text-sky-300">200</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">Muy Baja</span></td>
+                                <td class="p-3 text-slate-400">Rutas BGP aprendidas dentro del mismo AS.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="p-3 font-bold text-rose-400">Desconocida / Inalcanzable</td>
+                                <td class="p-3 font-mono font-bold text-rose-400">255</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Sin Confianza</span></td>
+                                <td class="p-3 text-slate-400">El router no confía en la fuente y **no instala** la ruta.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- EJEMPLO PRÁCTICO: RUTA FLOTANTE -->
+            <div class="glass-card p-6 rounded-2xl">
+                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="zap" class="text-amber-400"></i>
+                    Aplicación Práctica: Ruta Estática Flotante (Floating Static Route)
+                </h3>
+                <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                    Las rutas flotantes aprovechan la Distancia Administrativa para crear **enlaces de respaldo automáticos**. Configurando una ruta estática con una AD mayor que la del protocolo primario 
+					(por ejemplo, AD = 120 frente a OSPF AD = 110), la ruta permanece oculta y solo se activa si el protocolo primario falla.
+                </p>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
+                    <pre><code>! Ruta Primaria aprendida por OSPF (AD = 110)
+! Ruta Estática Flotante de Respaldo hacia ISP Backup con AD = 130 (Superior a OSPF 110)
+R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.2 130</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB B: CLASIFICACIÓN DE FAMILIAS -->
+        <section id="familias" class="main-tab-content hidden space-y-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-2xl font-bold text-white mb-2">Clasificación de Protocolos Dinámicos</h2>
+                <p class="text-slate-300 text-sm mb-6">Los protocolos dinámicos se organizan jerárquicamente según su ámbito de dominio (Sistema Autónomo) y el tipo de algoritmo subyacente.</p>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- IGP vs EGP Card -->
+                    <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <h3 class="text-sky-400 font-bold text-lg flex items-center gap-2">
+                            <i data-lucide="globe" class="w-5 h-5"></i>
+                            Por Ámbito de Operación
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/40">
+                                <span class="font-semibold text-slate-200 text-sm">IGP (Interior Gateway Protocols)</span>
+                                <p class="text-xs text-slate-400 mt-1">Utilizados para enrutamiento dentro de un mismo dominio administrativo o empresa (ej. OSPF, EIGRP, RIP).</p>
+                            </div>
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/40">
+                                <span class="font-semibold text-slate-200 text-sm">EGP (Exterior Gateway Protocols)</span>
+                                <p class="text-xs text-slate-400 mt-1">Diseñados para intercambiar información de enrutamiento entre Sistemas Autónomos distintos (ej. BGP-4).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distance Vector vs Link State -->
+                    <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <h3 class="text-indigo-400 font-bold text-lg flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                            Por Naturaleza Algorítmica
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/40">
+                                <span class="font-semibold text-slate-200 text-sm">Vector Distancia (Distance Vector)</span>
+                                <p class="text-xs text-slate-400 mt-1">Comparte la tabla de enrutamiento con vecinos directos (enrutamiento por rumor). Algoritmo Bellman-Ford.</p>
+                            </div>
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/40">
+                                <span class="font-semibold text-slate-200 text-sm">Estado de Enlace (Link-State)</span>
+                                <p class="text-xs text-slate-400 mt-1">Cada router construye un mapa completo de la red (LSDB) y calcula el árbol de caminos cortos (SPF/Dijkstra).</p>
+                            </div>
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/40">
+                                <span class="font-semibold text-slate-200 text-sm">Vector Distancia Avanzado / Híbrido</span>
+                                <p class="text-xs text-slate-400 mt-1">Combina la rapidez del estado de enlace con la simplicidad del vector distancia (ej. EIGRP con DUAL).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB ANÁLISIS PROFUNDO: RIP, OSPF, EIGRP (Pestañas secundarias de 3 capas) -->
+        <section id="protocolos-deep" class="main-tab-content hidden space-y-6">
+            <!-- Selector de Protocolo -->
+            <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+                <button onclick="selectProtocol('rip', this)" class="subtab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2">
+                    <i data-lucide="radio" class="w-4 h-4"></i> RIP
+                </button>
+                <button onclick="selectProtocol('ospf', this)" class="subtab-btn px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2">
+                    <i data-lucide="network" class="w-4 h-4"></i> OSPF
+                </button>
+                <button onclick="selectProtocol('eigrp', this)" class="subtab-btn px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4"></i> EIGRP
+                </button>
+            </div>
+
+            <!-- CONTENIDOS DINÁMICOS POR PROTOCOLO -->
+            
+            <!-- ===== PROTOCOLO RIP ===== -->
+            <div id="proto-rip" class="protocol-panel space-y-6">
+                <!-- 1. Historia -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-amber-400 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5"></i> 1. Historia y Versiones de RIP</h3>
+                        <span class="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">RFC 1058 / RFC 2453</span>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">RIPv1 (Classful)</h4>
+                            <p class="text-xs text-slate-400">Lanzado en 1988. Broadcast (`255.255.255.255`). No envía la máscara de subred en las actualizaciones, impidiendo VLSM y CIDR.</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">RIPv2 (Classless)</h4>
+                            <p class="text-xs text-slate-400">Soporta VLSM, resumen manual y autenticación (MD5). Envía actualizaciones mediante Multicast (`224.0.0.9`).</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">RIPng (Next Gen)</h4>
+                            <p class="text-xs text-slate-400">Versión adaptada para IPv6. Utiliza el grupo Multicast `FF02::9` y puerto UDP 521. Elimina la autenticación propia, delegándola a IPsec.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Mensajes y Algoritmo -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2"><i data-lucide="cpu" class="w-5 h-5"></i> 2. Mensajes, Algoritmo y Métrica</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Algoritmo Bellman-Ford</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Calcula el camino óptimo evaluando únicamente el número de saltos (*Hop Count*)[cite: 107, 108]. Límite máximo de 15 saltos (16 = Red inalcanzable/infinito). 
+								Presenta convergencia lenta e implementa técnicas para prevenir bucles como *Split Horizon* y *Poison Reverse*.
+                            </p>
+                        </div>
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Tipos de Mensajes RIP</h4>
+                            <ul class="text-xs text-slate-400 space-y-2">
+                                <li class="p-2 bg-slate-900/80 rounded border border-slate-800"><strong class="text-amber-300">Request:</strong> Solicitada al arrancar la interfaz para pedir la tabla a los vecinos.</li>
+                                <li class="p-2 bg-slate-900/80 rounded border border-slate-800"><strong class="text-amber-300">Response:</strong> Envío de la tabla periódicamente cada 30 segundos o por cambio de estado.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Configuración Cisco IOS -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5"></i> 3. Comandos de Configuración en Cisco IOS</h3>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
+                        <pre><code>R1# configure terminal
+R1(config)# router rip
+R1(config-router)# version 2
+R1(config-router)# no auto-summary
+R1(config-router)# passive-interface GigabitEthernet0/0
+R1(config-router)# network 192.168.10.0
+R1(config-router)# default-information originate
+R1(config-router)# exit</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PROTOCOLO OSPF ===== -->
+            <div id="proto-ospf" class="protocol-panel hidden space-y-6">
+                <!-- 1. Historia -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-sky-400 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5"></i> 1. Historia y Versiones de OSPF</h3>
+                        <span class="text-xs px-2 py-1 bg-sky-500/10 text-sky-400 rounded border border-sky-500/20">Estándar Abierto IETF</span>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">OSPFv2 (IPv4)</h4>
+                            <p class="text-xs text-slate-400">Definido en RFC 2328. Diseñado para enrutamiento IPv4 sin clase (Classless). Soporta diseño jerárquico por áreas (Área 0 Backbone).</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">OSPFv3 (IPv6)</h4>
+                            <p class="text-xs text-slate-400">Definido en RFC 5340. Soporta IPv6 nativo y arquitecturas Dual-Stack mediante Address Families. Opera independientemente del direccionamiento de red.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Mensajes y Algoritmo -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2"><i data-lucide="cpu" class="w-5 h-5"></i> 2. Mensajes, Algoritmo Dijkstra y LSDB</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Algoritmo SPF (Shortest Path First) / Dijkstra</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Cada router intercambia anuncios de estado de enlace (LSA) para construir una base de datos topológica idéntica (LSDB) dentro del área[cite: 34, 60]. Ejecuta Dijkstra para obtener un árbol 
+								sin bucles hacia cada destino. Métrica = Costo basado en ancho de banda.
+                            </p>
+                        </div>
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Paquetes de Control OSPF</h4>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-sky-300">1. Hello:</b> Descubrimiento de vecinos.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-sky-300">2. DBD:</b> Resumen de LSDB.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-sky-300">3. LSR:</b> Solicitud de LSA específicosa.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-sky-300">4. LSU:</b> Envío de LSA actualizadosa.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Configuración Cisco IOS -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5"></i> 3. Comandos de Configuración en Cisco IOS</h3>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
+                        <pre><code>R1# configure terminal
+R1(config)# router ospf 10
+R1(config-router)# router-id 1.1.1.1
+R1(config-router)# network 10.0.0.0 0.0.0.255 area 0
+R1(config-router)# passive-interface GigabitEthernet0/0
+R1(config-router)# auto-cost reference-bandwidth 10000
+R1(config-router)# exit</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PROTOCOLO EIGRP ===== -->
+            <div id="proto-eigrp" class="protocol-panel hidden space-y-6">
+                <!-- 1. Historia -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-emerald-400 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5"></i> 1. Historia y Versiones de EIGRP</h3>
+                        <span class="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20">Cisco Proprietary / RFC 7868 Informacional</span>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">EIGRP Clásico (AS)</h4>
+                            <p class="text-xs text-slate-400">Introducido por Cisco en 1992 como evolución de IGRP. Configuración mediante proceso de Sistema Autónomo (`router eigrp AS`) para IPv4 e IPv6 por separado.</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-200 mb-1">Named EIGRP</h4>
+                            <p class="text-xs text-slate-400">Estructura de configuración moderna unificada bajo un único nombre de instancia, permitiendo gestionar IPv4, IPv6 y parámetros de interfaz en un solo bloque.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Mensajes y Algoritmo -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="cpu" class="w-5 h-5"></i> 2. Algoritmo DUAL, Tablas y Paquetes RTP</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Algoritmo DUAL (Diffusing Update Algorithm)</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Garantiza rutas sin bucles y convergencia inmediata. Mantiene un **Sucesor** (ruta primaria) y precalcula un **Sucesor Factible** (backup libre de bucles) mediante la Condición de Factibilidad ($RD < FD$)[cite: 193].
+                            </p>
+                        </div>
+                        <div class="space-y-3">
+                            <h4 class="text-slate-200 font-semibold text-sm">Paquetes EIGRP (Protocolo RTP)</h4>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-emerald-300">Hello:</b> Saludo y mantenimiento.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-emerald-300">Update:</b> Cambios parciales.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-emerald-300">Query:</b> Consulta de respaldo.</div>
+                                <div class="p-2 bg-slate-900/80 rounded border border-slate-800"><b class="text-emerald-300">Reply:</b> Respuesta a consulta.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Configuración Cisco IOS -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5"></i> 3. Comandos de Configuración en Cisco IOS (Named EIGRP)</h3>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
+                        <pre><code>R1# configure terminal
+R1(config)# router eigrp EMPRESA
+R1(config-router)# address-family ipv4 unicast autonomous-system 100
+R1(config-router-af)# network 172.16.0.0 0.0.255.255
+R1(config-router-af)# af-interface GigabitEthernet0/0
+R1(config-router-af-interface)# passive-interface
+R1(config-router-af-interface)# exit</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB C: TABLA COMPARATIVA -->
+        <section id="comparativa" class="main-tab-content hidden space-y-6">
+            <div class="glass-card p-6 rounded-2xl overflow-x-auto">
+                <h2 class="text-2xl font-bold text-white mb-4">c) Matriz Comparativa de Protocolos</h2>
+                <table class="w-full text-left text-xs text-slate-300 border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-200 border-b border-slate-800">
+                            <th class="p-3">Protocolo</th>
+                            <th class="p-3">Tipo / Ámbito</th>
+                            <th class="p-3">Distancia Admin (AD)</th>
+                            <th class="p-3">Métrica</th>
+                            <th class="p-3">Algoritmo</th>
+                            <th class="p-3">Convergencia</th>
+                            <th class="p-3">Ventaja Principal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        <tr class="hover:bg-slate-800/30">
+                            <td class="p-3 font-bold text-amber-400">Estático</td>
+                            <td class="p-3">Manual / N/A</td>
+                            <td class="p-3 font-mono text-emerald-400 font-bold">1</td>
+                            <td class="p-3">Manual</td>
+                            <td class="p-3">N/A</td>
+                            <td class="p-3">Manual</td>
+                            <td class="p-3 text-emerald-400">Cero uso de CPU/RAM</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30">
+                            <td class="p-3 font-bold text-amber-400">RIPv2 / RIPng</td>
+                            <td class="p-3">IGP / Distance Vector</td>
+                            <td class="p-3 font-mono text-amber-400 font-bold">120</td>
+                            <td class="p-3">Conteo de Saltos (Max 15)</td>
+                            <td class="p-3">Bellman-Ford</td>
+                            <td class="p-3">Lenta</td>
+                            <td class="p-3 text-emerald-400">Fácil configuración</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30">
+                            <td class="p-3 font-bold text-sky-400">OSPFv2 / v3</td>
+                            <td class="p-3">IGP / Link-State</td>
+                            <td class="p-3 font-mono text-sky-400 font-bold">110</td>
+                            <td class="p-3">Costo (Asociado al Ancho Banda)</td>
+                            <td class="p-3">Dijkstra / SPF</td>
+                            <td class="p-3">Rápida</td>
+                            <td class="p-3 text-emerald-400">Estándar abierto escalable</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30">
+                            <td class="p-3 font-bold text-emerald-400">EIGRP</td>
+                            <td class="p-3">IGP / Vector Avanzado</td>
+                            <td class="p-3 font-mono text-emerald-400 font-bold">90 (Int) / 170 (Ext)</td>
+                            <td class="p-3">Compuesta (BW + Demora)</td>
+                            <td class="p-3">DUAL</td>
+                            <td class="p-3">Ultra Rápida</td>
+                            <td class="p-3 text-emerald-400">Sucesor factible para failover</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB MATRIZ INTERACTIVA DE SELECCIÓN -->
+        <section id="matriz" class="main-tab-content hidden space-y-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-2xl font-bold text-white mb-2">Simulador de Selección de Protocolo de Red</h2>
+                <p class="text-slate-300 text-sm mb-6">Selecciona las condiciones de tu infraestructura para obtener la recomendación técnica óptima basada en el diseño de red.</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-4 bg-slate-900/80 p-5 rounded-xl border border-slate-800">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">1. Tamaño de la Topología</label>
+                            <select id="sel-size" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+                                <option value="small">Pequeña (< 10 routers / SOHO)</option>
+                                <option value="medium">Mediana (10 - 50 routers)</option>
+                                <option value="large">Grande / Corporativa (> 50 routers)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">2. Homogeneidad de Equipamiento</label>
+                            <select id="sel-vendor" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+                                <option value="cisco">Infraestructura 100% Cisco Systems</option>
+                                <option value="multi">Multimarca (Cisco, Juniper, Huawei, Mikrotik)</option>
+                            </select>
+                        </div>
+                        <button onclick="calculateRecommendation()" class="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="cpu" class="w-4 h-4"></i> Evaluador de Topología
+                        </button>
+                    </div>
+
+                    <div id="recommendation-result" class="bg-slate-900/90 p-5 rounded-xl border border-sky-500/30 flex flex-col justify-center items-center text-center space-y-3">
+                        <i data-lucide="sliders" class="w-10 h-10 text-sky-400"></i>
+                        <h3 class="text-lg font-bold text-slate-100">Esperando parámetros...</h3>
+                        <p class="text-xs text-slate-400">Ajuste las variables requeridas para generar el dictamen técnico.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 bg-slate-900/60 py-4 text-center text-xs text-slate-500">
+        <p>© 2026 Ana Rocío León — Universidad Santo Tomás, sede Tunja</p>
+    </footer>
+
+    <!-- MODAL BIBLIOGRAFÍA APA 7 -->
+    <div id="apaModal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-3xl w-full max-h-[85vh] rounded-2xl p-6 overflow-y-auto border border-sky-500/30 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="book-open" class="text-sky-400 w-5 h-5"></i>
+                    d) Referencias Bibliográficas (Normas APA 7.ª ed.)
+                </h3>
+                <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-white rounded-lg bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300">
+                <p class="apa-indent">
+                    Cisco Networking Academy. (2020). Chapter 3: OSPF and routing concepts. En <i>Enterprise networking, security, and automation companion guide (CCNAv7)</i> (pp. 115-182). Cisco Press.
+                </p>
+                <p class="apa-indent">
+                    Kurose, J. F., & Ross, K. W. (2021). <i>Computer networking: A top-down approach</i> (8.ª ed.). Pearson.
+                </p>
+                <p class="apa-indent">
+                    Cisco Networking Academy. (2025). <i>Enrutamiento estático y conceptos de decisión de reenvío</i> [Diapositivas de presentación]. Cisco Press. Disponible en www.netacad.com.
+                </p>
+                <p class="apa-indent">
+                    Cisco Networking Academy. (2025). <i>Protocolos de enrutamiento dinámico por vector de distancia: RIPv2 y RIPng</i> [Diapositivas de presentación].Cisco Press. Disponible en www.netacad.com.
+                </p>
+                <p class="apa-indent">
+                    Cisco Networking Academy. (2025). <i>Enrutamiento dinámico de estado de enlace: OSPFv2 y OSPFv3</i> [Diapositivas de presentación]. Cisco Press. Disponible en www.netacad.com..
+                </p>
+                <p class="apa-indent">
+                    Cisco Networking Academy. (2025). <i>Enrutamiento avanzado de vector distancia: Protocolo EIGRP</i> [Diapositivas de presentación]. Cisco Press. Disponible en www.netacad.com.
+                </p>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg text-xs">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT DINÁMICO -->
+    <script>
+        // Inicializar Iconos Lucide
+        lucide.createIcons();
+
+        // Cambio de Pestañas Principales
+        function switchMainTab(tabId, btnElement) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            btnElement.classList.add('active');
+        }
+
+        // Selección de Protocolos en la Sección Análisis Profundo
+        function selectProtocol(proto, btnElement) {
+            document.querySelectorAll('.protocol-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.subtab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`proto-${proto}`).classList.remove('hidden');
+            btnElement.classList.add('active');
+        }
+
+        // Abrir / Cerrar Modal APA
+        function openModal() {
+            document.getElementById('apaModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('apaModal').classList.add('hidden');
+        }
+
+        // Evaluador Técnico de Selección
+        function calculateRecommendation() {
+            const size = document.getElementById('sel-size').value;
+            const vendor = document.getElementById('sel-vendor').value;
+            const res = document.getElementById('recommendation-result');
+
+            let title = "";
+            let desc = "";
+            let badge = "";
+
+            if (size === 'small') {
+                title = "Enrutamiento Estático o RIPv2";
+                desc = "Para infraestructuras pequeñas (< 10 routers), el enrutamiento estático optimiza el rendimiento liberando ciclos de CPU y RAM . Si se requiere dinamismo con mantenimiento mínimo, RIPv2 es suficiente[cite: 115].";
+                badge = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+            } else if (size === 'medium' && vendor === 'cisco') {
+                title = "EIGRP (Enhanced Interior Gateway Routing Protocol)";
+                desc = "En entornos Cisco con requerimientos de convergencia inmediata, EIGRP precalcula el Sucesor Factible en DUAL[cite: 193] y optimiza el ancho de banda enviando únicamente cambios parciales y delimitados[cite: 188, 220].";
+                badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+            } else {
+                title = "OSPF (Open Shortest Path First)";
+                desc = "Estándar abierto jerárquico por áreas[cite: 1, 52]. Excelente para redes medianas y grandes compuestas por múltiples marcas. Previene bucles mediante el algoritmo Dijkstra / SPF y garantiza escalabilidad masiva[cite: 1, 6].";
+                badge = "bg-sky-500/20 text-sky-300 border-sky-500/30";
+            }
+
+            res.innerHTML = `
+                <span class="px-3 py-1 rounded-full text-xs font-semibold border ${badge}">Dictamen Recomendado</span>
+                <h3 class="text-lg font-bold text-white">${title}</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">${desc}</p>
+            `;
+        }
+		
+		// Filtro en tiempo real para la tabla de Distancia Administrativa
+        function filterADTable() {
+            const input = document.getElementById('adSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#adTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+
+        function calculateRecommendation() {
+            const size = document.getElementById('sel-size').value;
+            const vendor = document.getElementById('sel-vendor').value;
+            const res = document.getElementById('recommendation-result');
+
+            let title = "";
+            let desc = "";
+            let badge = "";
+
+            if (size === 'small') {
+                title = "Enrutamiento Estático o RIPv2";
+                desc = "Para infraestructuras pequeñas (< 10 routers), el enrutamiento estático (AD = 1) optimiza el rendimiento liberando ciclos de CPU[cite: 93, 174]. Si se requiere dinamismo simple, RIPv2 (AD = 120) es adecuado[cite: 115, 174].";
+                badge = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+            } else if (size === 'medium' && vendor === 'cisco') {
+                title = "EIGRP (Enhanced Interior Gateway Routing Protocol)";
+                desc = "En entornos Cisco con alta confiabilidad (AD Interna = 90)[cite: 174], EIGRP precalcula el Sucesor Factible en DUAL[cite: 193] y optimiza el uso de ancho de banda[cite: 188].";
+                badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+            } else {
+                title = "OSPF (Open Shortest Path First)";
+                desc = "Estándar abierto jerárquico (AD = 110)[cite: 1, 52, 174]. Ideal para redes multimarca compuestas por múltiples áreas. Previene bucles mediante el algoritmo Dijkstra / SPF[cite: 1, 6].";
+                badge = "bg-sky-500/20 text-sky-300 border-sky-500/30";
+            }
+
+            res.innerHTML = `
+                <span class="px-3 py-1 rounded-full text-xs font-semibold border ${badge}">Dictamen Recomendado</span>
+                <h3 class="text-lg font-bold text-white">${title}</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">${desc}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
